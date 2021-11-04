@@ -68,7 +68,7 @@ int alive_population(int** grid){
     for(i=0;i<r;i++){
         for(j=0;j<c;j++){
             if(grid[i][j] == 1){
-                printf("[%d][%d]Vivo \n", i, j);
+                // printf("[%d][%d]Vivo \n", i, j);
                 total++;
             }
         }
@@ -100,11 +100,13 @@ int** game_of_life(int** grid, int n){
     for (i = 0; i < r; i++)
         new_grid[i] = (int*)malloc(c * sizeof(int));
 
-    new_grid = grid;
-    for(i=0; i<n; i++){
+    population = alive_population(grid);
+    printf("Geracao 1: %d\n", population);
+    new_grid = new_round(grid);
+    for(i=0; i<n-1; i++){
         population = alive_population(new_grid);
-        printf("%d\n", population);
-        new_grid = new_round(grid);
+        printf("Geracao %d: %d\n", i+1, population);
+        new_grid = new_round(new_grid);
     }
 
     return new_grid;
