@@ -46,16 +46,16 @@ int new_cell_status(int** grid, int l, int col){
     int neighbors = getNeighbors(grid, l, col);
 //     printf("[%d][%d] %d\n",l,col, neighbors);
     if(grid[l][col] == 1){
-        if(neighbors < 2 || neighbors > 3){
-            grid[l][col] = 0;
-            printf("[%d][%d]Morreu! Vizinhos: %d\n", l, col, neighbors);
+        if(neighbors != 2 && neighbors != 3){
+            return 0;
+            // printf("[%d][%d]Morreu! Vizinhos: %d\n", l, col, neighbors);
         }
     }
 
     else if(grid[l][col] == 0){
         if(neighbors == 3){
-            grid[l][col] = 1;
-            printf("[%d][%d]Viveu! Vizinhos: %d\n", l, col, neighbors);
+           return 1;
+            // printf("[%d][%d]Viveu! Vizinhos: %d\n", l, col, neighbors);
         }
     }
 
@@ -68,6 +68,7 @@ int alive_population(int** grid){
     for(i=0;i<r;i++){
         for(j=0;j<c;j++){
             if(grid[i][j] == 1){
+                printf("[%d][%d]Vivo \n", i, j);
                 total++;
             }
         }
@@ -94,13 +95,19 @@ int** new_round(int** grid){
 
 int** game_of_life(int** grid, int n){
     int i, population;
+
+    int** new_grid = (int**)malloc(r * sizeof(int*));
+    for (i = 0; i < r; i++)
+        new_grid[i] = (int*)malloc(c * sizeof(int));
+
+    new_grid = grid;
     for(i=0; i<n; i++){
-        population = alive_population(grid);
+        population = alive_population(new_grid);
         printf("%d\n", population);
-        grid = new_round(grid);
+        new_grid = new_round(grid);
     }
 
-    return grid;
+    return new_grid;
 }
 
 
@@ -136,7 +143,8 @@ int main(){
         new_grid[i] = (int*)malloc(c * sizeof(int));
 
     new_grid = game_of_life(grid, 5);
-
+    population = alive_population(new_grid);
+    printf("%d\n", population);
     return 0;
 
 }
