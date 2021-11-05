@@ -1,13 +1,16 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<omp.h>
-
+#include <time.h>
+#include <assert.h>
+#define THREADS 6
 #define HIGHLIFE 0
 
 int r = 2048, c = 2048;
 
 int getNeighbors(int** grid, int lin, int col) {
     int count = 0, column, l, i, j;
+    double start, end, run;
   
     for(i=-1; i<2; i++){
         
@@ -45,18 +48,15 @@ int getNeighbors(int** grid, int lin, int col) {
 
 int new_cell_status(int** grid, int l, int col){
     int neighbors = getNeighbors(grid, l, col);
-//     printf("[%d][%d] %d\n",l,col, neighbors);
     if(grid[l][col] == 1){
         if(neighbors != 2 && neighbors != 3){
             return 0;
-            // printf("[%d][%d]Morreu! Vizinhos: %d\n", l, col, neighbors);
         }
     }
 
     else if(grid[l][col] == 0){
         if (neighbors == 3 || (HIGHLIFE ? neighbors == 6 : 0)) {
            return 1;
-            // printf("[%d][%d]Viveu! Vizinhos: %d\n", l, col, neighbors);
         }
     }
 
@@ -69,7 +69,6 @@ int alive_population(int** grid){
     for(i=0;i<r;i++){
         for(j=0;j<c;j++){
             if(grid[i][j] == 1){
-                // printf("[%d][%d]Vivo \n", i, j);
                 total++;
             }
         }
@@ -81,9 +80,9 @@ int alive_population(int** grid){
 void new_round(int** grid, int** new_grid){
     int i,j, population;
     
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(THREADS)
         for(i=0;i<r;i++){
-           #pragma omp parallel for
+           #pragma omp parallel for num_threads(THREADS)
             for(j=0;j<c;j++){
                 new_grid[i][j] = new_cell_status(grid,i,j);
             }
@@ -97,15 +96,15 @@ int** game_of_life(int** grid, int** new_grid, int n){
     printf("Geracao 1: %d\n", population);
     new_round(grid, new_grid);
     for(i=0; i<n-1; i++){
-        #pragma omp parallel for
+        #pragma omp parallel for num_threads(THREADS)
         for(int j=0;j<r;j++){
-           #pragma omp parallel for
+           #pragma omp parallel for num_threads(THREADS)
             for(int k=0;k<c;k++){
                 grid[j][k] = new_grid[j][k];
             }
         }
         population = alive_population(new_grid);
-        printf("Geracao %d: %d\n", i+1, population);
+        printf("Geracao %d: %d\n", i+2, population);
         new_round(grid, new_grid);
     }
 
@@ -115,7 +114,9 @@ int** game_of_life(int** grid, int** new_grid, int n){
 
 int main(){
     int i, j, count, neighbors, population;
- 
+    double start, end, run;
+    start = omp_get_wtime();
+
     int** grid = (int**)malloc(r * sizeof(int*));
     for (i = 0; i < r; i++)
         grid[i] = (int*)malloc(c * sizeof(int));
@@ -147,6 +148,9 @@ int main(){
     new_grid = game_of_life(grid, new_grid, 2000);
     population = alive_population(new_grid);
     printf("%d\n", population);
+
+    end = omp_get_wtime();
+    printf(" took %f seconds.\n", end-start);
     return 0;
 
 }
